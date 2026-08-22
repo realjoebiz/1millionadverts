@@ -4,7 +4,7 @@ let client: Stripe | null = null;
 
 export function getStripe(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY;
-  if (!key || key.includes('replace')) {
+  if (!key || key.includes('replace') || key.includes('PENDING')) {
     throw new Error('Add STRIPE_SECRET_KEY to .env');
   }
   if (!client) client = new Stripe(key);
