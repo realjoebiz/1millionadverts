@@ -1,10 +1,8 @@
 #!/bin/sh
 set -e
-if [ -f node_modules/prisma/build/index.js ]; then
-  node node_modules/prisma/build/index.js db push --skip-generate
-elif [ -f node_modules/.bin/prisma ]; then
-  ./node_modules/.bin/prisma db push --skip-generate
-else
-  echo "WARNING: prisma CLI missing; skipping db push"
+if [ ! -f /data/prod.db ]; then
+  echo "Seeding empty SQLite database into /data/prod.db"
+  cp /app/prisma/template.db /data/prod.db
 fi
+export DATABASE_URL="file:/data/prod.db"
 exec node server.js

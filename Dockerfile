@@ -12,6 +12,8 @@ FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npx prisma generate
+# Create a template SQLite DB at build time so runtime needs no prisma CLI
+RUN DATABASE_URL="file:./prisma/template.db" npx prisma db push
 RUN npm run build
 
 FROM base AS runner
@@ -24,8 +26,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma/client ./node_modules/@prisma/client
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 COPY scripts/start.sh ./scripts/start.sh
 USER root
