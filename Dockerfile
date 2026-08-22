@@ -35,4 +35,4 @@ ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 ENV DATABASE_URL="file:/data/prod.db"
 # Absolute paths + diagnostics so Coolify logs show the real failure
-CMD ["sh","-c","set -x; echo PWD=$(pwd); ls -la /app; ls -la /app/prisma; mkdir -p /data; test -f /app/prisma/template.db || { echo MISSING_TEMPLATE; exit 1; }; test -f /data/prod.db || cp /app/prisma/template.db /data/prod.db; export DATABASE_URL=file:/data/prod.db; test -f /app/server.js || { echo MISSING_SERVER; find /app -name server.js; exit 1; }; exec node /app/server.js"]
+CMD ["sh","-c","set -x; echo PWD=$(pwd); ls -la /app; ls -la /app/prisma; mkdir -p /data; TEMPLATE=; for f in /app/prisma/template.db /app/prisma/prisma/template.db; do if [ -f \"$f\" ]; then TEMPLATE=$f; break; fi; done; if [ -z \"$TEMPLATE\" ]; then echo MISSING_TEMPLATE; find /app -name '*.db'; exit 1; fi; test -f /data/prod.db || cp \"$TEMPLATE\" /data/prod.db; export DATABASE_URL=file:/data/prod.db; test -f /app/server.js || { echo MISSING_SERVER; find /app -name server.js; exit 1; }; exec node /app/server.js"]
