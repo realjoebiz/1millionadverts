@@ -12,7 +12,9 @@ FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npx prisma generate
-RUN DATABASE_URL="file:./prisma/template.db" npx prisma db push
+# SQLite paths are relative to the schema dir (prisma/), not repo root
+RUN DATABASE_URL="file:./template.db" npx prisma db push
+RUN test -f prisma/template.db && ls -la prisma
 RUN npm run build
 # Prove standalone layout during build (shows up in Coolify build logs)
 RUN echo "=== standalone tree ===" && find .next/standalone -maxdepth 3 -type f -name 'server.js' -o -name 'package.json' | head -50 && ls -la .next/standalone && ls -la prisma
