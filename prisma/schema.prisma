@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Placement {
+  id              String    @id @default(cuid())
+  x               Int
+  y               Int
+  width           Int
+  height          Int
+  title           String
+  url             String
+  imageUrl        String?
+  color           String    @default("#3dff9a")
+  ownerEmail      String?
+  amountPence     Int
+  stripeSessionId String?   @unique
+  status          String    @default("pending")
+  createdAt       DateTime  @default(now())
+  paidAt          DateTime?
+
+  @@index([status])
+}
+
+model SiteStat {
+  id           Int      @id @default(1)
+  soldPixels   Int      @default(0)
+  revenuePence Int      @default(0)
+  updatedAt    DateTime @updatedAt
+}
