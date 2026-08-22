@@ -18,7 +18,7 @@ RUN npm run build
 
 FROM base AS runner
 ENV NODE_ENV=production
-RUN apk add --no-cache curl \
+RUN apk add --no-cache curl su-exec \
   && addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 nextjs
 COPY --from=builder /app/public ./public
@@ -29,11 +29,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modul
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma/client ./node_modules/@prisma/client
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 COPY scripts/start.sh ./scripts/start.sh
+# Start as root so named volumes at /data can be chowned, then drop to nextjs.
 USER root
 RUN chmod +x scripts/start.sh \
   && mkdir -p /data \
   && chown -R nextjs:nodejs /data /app
-USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
