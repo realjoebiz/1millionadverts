@@ -12,7 +12,6 @@ FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npx prisma generate
-# Create a template SQLite DB at build time so runtime needs no prisma CLI
 RUN DATABASE_URL="file:./prisma/template.db" npx prisma db push
 RUN npm run build
 
@@ -26,10 +25,9 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 COPY --from=builder /app/package.json ./package.json
-COPY scripts/start.sh ./scripts/start.sh
-RUN chmod +x scripts/start.sh
+# Inline start avoids Windows CRLF breaking Alpine /bin/sh scripts
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 ENV DATABASE_URL="file:/data/prod.db"
-CMD ["sh", "scripts/start.sh"]
+CMD ["sh","-c","mkdir -p /data && if [ ! -f /data/prod.db ]; then cp prisma/template.db /data/prod.db; fi && export DATABASE_URL=file:/data/prod.db && exec node server.js"]
